@@ -19,5 +19,10 @@
     "eslint": "^9.5.0",
     "globals": "^15.5.0",
     "prettier": "3.3.2"
+  },
+  "dependencies": {
+    "pino": "^9.2.0",
+    "pino-http": "^10.1.0",
+    "pino-pretty": "^11.2.1"
   }
 }
