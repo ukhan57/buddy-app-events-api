@@ -21,15 +21,15 @@ const eventSchema = new mongoose.Schema({
   attendees: [String],
   organizer: String,
   comments: [commentSchema], // Embed comments in event schema
-  imageUrl: String // Add this field to store the image URL
+  imageUrl: String 
 });
 
 const Event = mongoose.model('Event', eventSchema);
 
 module.exports = {
-  Event, // Export the Event model for other modules to use
-  createEvent: async function(eventData, imageUrl) {    // line for image URL
-    const event = new Event({ ...eventData, imageUrl }); // line for image URL
+  Event, 
+  createEvent: async function(eventData, imageUrl) {    
+    const event = new Event({ ...eventData, imageUrl }); 
     return event.save();
   },
 
