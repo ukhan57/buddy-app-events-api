@@ -1,11 +1,11 @@
-// src/app.js
-
+//src/app.js
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const mongoose = require('mongoose');
-const eventService = require('./event-service');
+const multer = require('multer');
+const { Event, createEvent, getAllEvents, getEventById, joinEvent, leaveEvent, cancelEvent } = require('./event-service');
 
 // Load environment variables from .env file
 require('dotenv').config();
@@ -23,39 +23,118 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI, { })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Health check route
-app.get('/', (req, res) => {
-  res.setHeader('Cache-Control', 'no-cache');
-  res.status(200).json({
-    status: 'ok',
-    author,
-    githubUrl: 'https://github.com/ukhan57/buddy-app-events-api.git',
-    version,
-  });
-});
+// Multer setup for image uploads
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// Endpoint to create a new event
-app.post("/api/events", async (req, res) => {
+app.post("/api/events", upload.single('image'), async (req, res) => {
   try {
     const eventData = req.body;
-    const event = await eventService.createEvent(eventData);
+    const imageUrl = req.file ? `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}` : null;
+    const event = await createEvent(eventData, imageUrl);
     res.status(201).json({ message: 'Event created successfully', event });
   } catch (error) {
     res.status(500).json({ message: 'Error creating event', error });
   }
 });
 
-// Endpoint to fetch all events
 app.get("/api/events", async (req, res) => {
   try {
-    const events = await eventService.getAllEvents();
+    const events = await getAllEvents();
     res.status(200).json({ events });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching events', error });
+  }
+});
+
+app.get("/api/events/:id", async (req, res) => {
+  try {
+    const event = await getEventById(req.params.id);
+    if (event) {
+      res.status(200).json({ event });
+    } else {
+      res.status(404).json({ message: 'Event not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching event', error });
+  }
+});
+
+app.post("/api/events/:id/join", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username } = req.body;
+    const event = await joinEvent(id, username);
+    res.status(200).json({ message: 'Joined event successfully', event });
+  } catch (error) {
+    res.status(500).json({ message: 'Error joining event', error });
+  }
+});
+
+app.post("/api/events/:id/leave", async (req, res) => {
+  try {
+    const { username } = req.body;
+    const event = await leaveEvent(req.params.id, username);
+    if (event) {
+      res.status(200).json({ event });
+    } else {
+      res.status(404).json({ message: 'Event not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error leaving event', error });
+  }
+});
+
+app.post("/api/events/:id/comments", async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const { user, text } = req.body;
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    event.comments.push({ user, text });
+    await event.save();
+
+    res.status(201).json({ message: 'Comment added successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error adding comment', error });
+  }
+});
+
+app.get("/api/events/:id/comments", async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const event = await Event.findById(eventId, 'comments');
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    res.status(200).json({ comments: event.comments });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching comments', error });
+  }
+});
+
+// Endpoint to cancel an event
+app.delete("/api/events/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username } = req.body;
+    const success = await cancelEvent(id, username);
+    if (success) {
+      res.status(200).json({ message: 'Event canceled successfully' });
+    } else {
+      res.status(403).json({ message: 'You are not authorized to cancel this event' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error canceling event', error });
   }
 });
 
