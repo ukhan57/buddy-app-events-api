@@ -16,6 +16,10 @@ const pino = require('pino-http')({
   logger,
 });
 
+if (process.env.NODE_ENV !== 'test') {
+  app.use(pino);=
+}
+
 const app = express();
 app.use(pino);
 app.use(helmet());

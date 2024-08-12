@@ -36,9 +36,18 @@ module.exports = {
   getAllEvents: async function() {
     return Event.find().exec();
   },
+  
   getEventById: async function(id) {
-    return Event.findById(id).exec();
+    try {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return null;
+      }
+      return Event.findById(id).exec();
+    } catch (error) {
+      return null;
+    }
   },
+  
   joinEvent: async function(id, username) {
     const event = await Event.findById(id).exec();
     if (event) {
@@ -59,11 +68,15 @@ module.exports = {
   },
 
   cancelEvent: async function(id, username) {
-    const event = await Event.findById(id).exec();
-    if (event && event.organizer === username) {
-      await Event.findByIdAndDelete(id).exec();
-      return true;
+    try {
+      const event = await Event.findById(id).exec();
+      if (event && event.organizer === username) {
+        await Event.findByIdAndDelete(id).exec();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      return false; 
     }
-    return false;
   }
 };
