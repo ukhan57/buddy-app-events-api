@@ -17,7 +17,7 @@ const pino = require('pino-http')({
 });
 
 if (process.env.NODE_ENV !== 'test') {
-  app.use(pino);=
+  app.use(pino);
 }
 
 const app = express();
