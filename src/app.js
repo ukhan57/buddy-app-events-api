@@ -10,7 +10,6 @@ const { Event, createEvent, getAllEvents, getEventById, joinEvent, leaveEvent, c
 // Load environment variables from .env file
 require('dotenv').config();
 
-const { author, version } = require('../package.json');
 const logger = require('./logger');
 const pino = require('pino-http')({
   logger,
@@ -152,7 +151,7 @@ app.use((req, res) => {
   });
 });
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   const status = err.status || 500;
   const message = err.message || 'unable to process request';
   if (status > 499) {

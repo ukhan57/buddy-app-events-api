@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
-    "lint": "eslint --config .eslintrc.js \"./src/**/*.js\"",
+    "coverage": "jest -c jest.config.js --runInBand --coverage",
+    "lint": "eslint --config eslint.config.mjs \"./src/**/*.js\" \"tests/**/*.js\"",
     "start": "node src/server.js",
     "dev": "cross-env LOG_LEVEL=debug nodemon ./src/server.js --watch src",
     "debug": "cross-env LOG_LEVEL=debug nodemon --inspect=0.0.0.0:9229 ./src/server.js --watch src"

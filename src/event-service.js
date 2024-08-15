@@ -1,5 +1,6 @@
 // src/event-service.js
 const mongoose = require('mongoose');
+const logger = require('./logger');
 
 // Comment schema
 const commentSchema = new mongoose.Schema({
@@ -44,6 +45,7 @@ module.exports = {
       }
       return Event.findById(id).exec();
     } catch (error) {
+      logger.error("Could not find the event: ", error)
       return null;
     }
   },
@@ -76,6 +78,7 @@ module.exports = {
       }
       return false;
     } catch (error) {
+      logger.error("Could not cancel the event: ", error);
       return false; 
     }
   }
