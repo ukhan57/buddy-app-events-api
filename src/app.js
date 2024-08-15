@@ -16,16 +16,16 @@ const pino = require('pino-http')({
   logger,
 });
 
-if (process.env.NODE_ENV !== 'test') {
-  app.use(pino);
-}
-
 const app = express();
 app.use(pino);
 app.use(helmet());
 app.use(cors());
 app.use(compression());
 app.use(express.json());
+
+if (process.env.NODE_ENV !== 'test') {
+  app.use(pino);
+}
 
 mongoose.connect(process.env.MONGODB_URI, { })
   .then(() => console.log('MongoDB connected'))
